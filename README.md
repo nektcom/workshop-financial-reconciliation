@@ -49,23 +49,23 @@ Todo mês, o time de finanças faz a mesma maratona: abrir a fatura do cartão c
 ```
   ENTRADA 1: NOTAS FISCAIS                         ENTRADA 2: CARTÃO DE CRÉDITO
   ┌────────────┐                                   ┌────────────────┐
-  │  Gmail     │  emails + anexos                  │  PDFs de        │
-  │ (conector  │                                   │  fatura          │
-  │  na Nekt)  │                                   │                 │
+  │  Gmail     │  emails + anexos                  │  PDFs de       │
+  │ (conector  │                                   │  fatura        │
+  │  na Nekt)  │                                   │                │
   └─────┬──────┘                                   └───────┬────────┘
         │                                                  │
         ▼                                                  ▼
   ┌───────────────────────────  N E K T  ───────────────────────────┐
-  │  IA classifica (é nota fiscal?)      IA de visão lê cada PDF,    │
-  │  renomeia, extrai data/valor          valida total da fatura     │
-  │         │                                      │                 │
-  │         ▼                                      ▼                 │
-  │  Drive (pasta do mês) + label    Trusted.transacoes_cartao       │
-  │  Trusted.invoices (com link)                                     │
+  │  IA classifica (é nota fiscal?)      IA de visão lê cada PDF,   │
+  │  renomeia, extrai data/valor          valida total da fatura    │
+  │         │                                      │                │
+  │         ▼                                      ▼                │
+  │  Drive (pasta do mês) + label    Trusted.transacoes_cartao      │
+  │  Trusted.invoices (com link)                                    │
   │         └──────────────┬───────────────────────┘                │
-  │                        ▼                                         │
-  │              CONCILIAÇÃO (1:1 + bloco agregado p/ recorrentes)   │
-  │                        ▼                                         │
+  │                        ▼                                        │
+  │              CONCILIAÇÃO (1:1 + bloco agregado p/ recorrentes)  │
+  │                        ▼                                        │
   │         conciliado · não-conciliado · resumo gerencial          │
   └────────────────────────┬────────────────────────────────────────┘
                            ▼
