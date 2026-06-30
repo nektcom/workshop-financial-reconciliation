@@ -1,18 +1,18 @@
-# Da caixa de email ao fechamento, sem digitar
+# Nekt + Claude Code: conciliação financeira no automático
 
 ### Como construir uma conciliação de notas fiscais × cartão de crédito conversando com uma IA, em cima da Nekt — e por que finanças pode confiar nisso
 
 > Por **Julia Mello**, Head of Finance na [Nekt](https://nekt.com) · `julia@nekt.com`
 
-Este repositório acompanha o workshop em que essa automação foi construída. Aqui está o resumo direcional de **tudo que foi pedido (os prompts) e tudo que foi gerado (os códigos)**, na ordem em que aconteceu — para que você reproduza o mesmo fluxo no seu ambiente. Cada passo traz o *porquê* em linguagem de negócio.
+Este repositório acompanha o workshop em que essa automação foi construída (https://www.youtube.com/live/looK3iLjRT0?si=V6pDBmJOo15IM9ma). Aqui está o resumo direcional de **tudo que foi pedido (os prompts) e tudo que foi gerado (os códigos)**, na ordem em que aconteceu — para que você reproduza o mesmo fluxo no seu ambiente. Cada passo traz o *porquê* em linguagem de negócio.
 
-> **Como reproduzir:** entregue este guia a um assistente de IA com acesso à sua [Nekt](https://nekt.com) e diga *"me ajude a construir isto, uma etapa por vez"*. Os prompts abaixo são genéricos — adapte nomes de tabelas, pastas e fornecedores ao seu caso. *(Os números e exemplos deste README são ilustrativos; nenhum dado real da empresa é exposto.)*
+> **Como reproduzir:** entregue este guia a um assistente de IA com acesso à sua [Nekt](https://nekt.com) e diga *"me ajude a construir isto, uma etapa por vez"*. Os prompts abaixo são genéricos — adapte nomes de tabelas, pastas e fornecedores ao seu caso. *(Os números e exemplos deste README são ilustrativos; nenhum dado real está exposto.)*
 
 ---
 
 ## O problema
 
-Todo mês, o time de finanças faz a mesma maratona: abrir a fatura do cartão corporativo, achar a nota fiscal de cada lançamento perdida no email, renomear, arquivar no Drive, e então **bater uma a uma** — o que conciliou, o que não conciliou, e por quê. É manual, demora horas, e a divergência costuma aparecer só no fechamento.
+Todo mês, o time de finanças faz a mesma maratona: abrir a fatura do cartão corporativo, achar a nota fiscal de cada lançamento, renomear e arquivar notas, e então **bater uma a uma** — o que conciliou, o que não conciliou, e por quê. É manual, demora horas e a divergência é quase certa.
 
 **A proposta:** deixar a parte repetitiva com uma IA — de forma **rastreável o suficiente para auditoria**.
 
@@ -20,13 +20,13 @@ Todo mês, o time de finanças faz a mesma maratona: abrir a fatura do cartão c
 
 ## A ideia em uma frase
 
-> **Claude é o cérebro. Nekt é a memória.**
+> **Claude é o cérebro. Nekt é a memória confiável.**
 
 - **O cérebro (a IA)** entende linguagem, lê documentos, decide "isto é uma nota fiscal", escreve o código. Mas cérebro sem memória confiável *inventa*.
 - **A memória (a Nekt)** conecta os sistemas (email, Drive, cartão), guarda tudo num lugar **governado, versionado e auditável**, e entrega para a IA um dado em que dá para confiar.
 - **A ponte entre os dois é o MCP** (*Model Context Protocol*) — uma "tomada universal" que liga a IA aos seus dados na Nekt com segurança, sem gambiarra.
 
-**Você não fica preso a uma IA só.** A Nekt conversa com vários modelos (via uma camada de roteamento de LLMs). Aqui usamos **Claude**, mas dá para usar **ChatGPT, Codex, Gemini** e outros — trocar é, na prática, **mudar uma linha** (o nome do modelo). A arquitetura não amarra a empresa a nenhum fornecedor de IA.
+**Você não fica preso a uma IA só.** A Nekt conversa com vários modelos (via uma camada de roteamento de LLMs). Aqui usamos **Claude Code**, mas dá para usar **Codex, Gemini** e outros. A arquitetura não amarra a empresa a nenhum fornecedor de IA.
 
 ---
 
@@ -35,12 +35,10 @@ Todo mês, o time de finanças faz a mesma maratona: abrir a fatura do cartão c
 | Componente | Papel |
 |---|---|
 | **Nekt** (plataforma de dados governada) | Conecta os sistemas, organiza em camadas, versiona e audita; executa os *notebooks*. |
-| **Assistente de IA com acesso via MCP** | Lê as tabelas da Nekt, classifica documentos e gera código. Ex.: Claude, ChatGPT/Codex, Gemini. |
+| **Assistente de IA com acesso via MCP** | Lê as tabelas da Nekt, classifica documentos e gera código. Ex.: Claude Code, ChatGPT/Codex, Gemini. |
 | **Conector de email** (Gmail/Outlook) na Nekt | Traz emails (e anexos) para dentro da plataforma. |
 | **Conector de armazenamento** (Drive) na Nekt | Para arquivar os documentos organizados. |
 | **Credenciais em cofre (Secrets da Nekt)** | Chaves OAuth guardadas como *secrets*, nunca no código. |
-
-**Princípio de fronteira:** *conectar a caixa de email é feito por uma pessoa, na interface da Nekt* (login OAuth com a própria conta) — não pela IA. Autorizar acesso à própria caixa é como dar a chave de casa: só o dono assina.
 
 ---
 
@@ -78,7 +76,82 @@ Duas origens, uma memória governada, um resultado auditável.
 
 ## Os 10 passos — prompts e códigos, na ordem
 
-Cada etapa virou um **notebook Python na Nekt**, gerado a partir de um pedido em português. Construa **uma etapa por vez** e valide antes de seguir.
+Cada etapa virou um **notebook Python na Nekt**, gerado a partir de um pedido em português para a IA. Construa **uma etapa por vez** e valide antes de seguir.
+
+### Etapa 0 - Definir o contexto
+**O que pedi (direcional):**
+> "Usando Nekt e Claude Code, quero construir um sistema que captura invoices/notas de emails, arquiva no drive (caminho X, Y Z) e as concilia contra transações de cartão de crédito. Saída final: tabela conciliado vs. não-conciliado + resumo gerencial. Preciso que você me ajude a escrever o contexto completo desse projeto para que possamos trabalhar cada etapa dele juntos. Ao concluir cada fase, descreva em 1-2 frases o que foi feito, mostre o resultado e me pergunte se pode seguir. Não avance sozinho. Tudo deve ser construído de tal forma que eu entenda tudo que está sendo feito em cada etapa - todos os códigos devem ter um título e uma pequena expicação do que está sendo feito."  
+
+**O que a IA construiu:** um contexto com detalhes a serem considerados em cada fase do projeto. A meu pedido, esse contexto foi salvo pelo próprio Claude Code em uma pasta criada em meu computador para arquivamento de tudo relacionado ao projeto. O contexto gerado:
+
+```
+# CLAUDE.md — Automação de Conciliação de Invoices (Nekt + Claude Code)
+
+## Objetivo (operacional)
+Capturar invoices/notas de emails, arquivar no Drive e conciliá-las contra
+transações de cartão de crédito. Saída final: tabela conciliado vs. não-conciliado
++ resumo gerencial.
+
+## Contexto de uso — LEIA PRIMEIRO
+Este código será construído para uma pessoa de FINANÇAS (não-técnica). Duas implicações que mudam como você age:
+1. RITMO É CONTROLADO POR MIM. Construímos UMA fase por vez. Ao terminar uma fase,
+   PARE. Mostre o resultado e espere eu mandar avançar. NUNCA encadeie fases sem
+   confirmação, mesmo que o próximo passo seja óbvio.
+2. TODA decisão técnica vem com o PORQUÊ em linguagem de negócio. Sem jargão sem tradução.
+
+## Regra de parada (checkpoint) — CRÍTICA
+- Ao concluir cada fase: descreva em 1-2 frases o que foi feito, mostre o resultado,
+  e PERGUNTE se pode seguir. Não avance sozinho.
+- Se eu pedir algo que pularia uma fase, confirme comigo antes.
+
+## Como apresentar resultados
+- Resultados em TABELA limpa, não em JSON ou texto cru.
+- Valores monetários formatados (R$ 1.273,00 / US$ 31.00) com moeda explícita.
+- Datas em formato legível. Sem dump de schema ou logs técnicos na tela, salvo se eu pedir.
+
+## O que está PRONTO (assuma; não refaça)
+- Conectores Gmail e Drive já ligados e autenticados na Nekt. NÃO tente reautenticar.
+- Extrato de cartão JÁ foi processado de PDF para tabela na Nekt, e validado por mim.
+
+## O que VERIFICAR antes de construir (não assuma)
+- Schema real: liste camadas e tabelas relevantes (invoices e transações de cartão)
+  via Nekt MCP e CONFIRME comigo os nomes antes de escrever qualquer query.
+- Não hardcode nome de tabela/coluna por suposição. Leia o schema.
+- Escopo do conector Gmail: confirme que há permissão de ESCRITA (aplicar label).
+  As labels "anexo salvo" e "anexo não salvo" JÁ EXISTEM — apenas aplique-as,
+  NÃO as crie.
+
+## Proibições duras
+- NÃO criar/alterar permissões, apagar dados, criar labels, ou enviar emails sem
+  minha confirmação. (Aplicar as labels já existentes em emails está liberado.)
+
+## Pastas do Drive
+- Padrão: pasta-mãe + subpasta do mês da invoice. Derive a subpasta a partir da DATA
+  da invoice; não mantenha lista manual.
+
+## Os 10 passos
+i.    Reconhecer emails com anexos.
+ii.   Classificar anexos que sejam invoices/notas fiscais.
+iii.  Renomear as invoices/notas.
+iv.   Salvar na subpasta do mês no Drive.
+v.    Aplicar tag no email: "anexo salvo" se arquivou com sucesso,
+      "anexo não salvo" caso contrário (controle de auditoria visível).
+vi.   Criar tabela com dados das invoices + link para o arquivo.
+vii.  Conciliar invoices com a tabela de transações de cartão. 
+viii. Transações vêm do extrato PDF processado na Nekt.
+ix.   Visão final: conciliado + link da invoice + não-conciliado. 
+x.    Resumo gerencial: nº transações, valor total cartão, nº invoices,
+      valor total invoices. 
+
+## Conciliação (fases vii, ix, x) — capricho máximo
+- É o momento de maior impacto. Visualização limpa e narrativa clara.
+- A coluna "não-conciliado" é um CONTROLE visível, não um erro a esconder. Mostre-a.
+
+## Segurança e auditoria
+- Trabalhe de forma rastreável: tabelas versionadas, não-conciliado visível como
+  controle, e capacidade de explicar cada decisão de classificação/conciliação.
+- A conciliação opera sobre dado tratado e governado na Nekt, não sobre PDFs soltos.
+```
 
 ### Etapa i + ii — Reconhecer e classificar
 
@@ -96,7 +169,7 @@ fornecedor, confianca (alta/media/baixa), motivo.
 Na dúvida, use confianca "baixa". Seja conservador.
 ```
 
-**Por quê:** classificar pelo *nome do arquivo* erra nos dois sentidos — deixa passar guia de imposto e quase perde "Nota Fiscal TMW". A IA lê o **conteúdo** e, na dúvida, **marca para revisar**. *Detectar ≠ classificar.*
+**Por quê:** classificar pelo *nome do arquivo* erra nos dois sentidos — deixa passar guia de imposto e quase perde "Nota Fiscal XYZ". A IA lê o **conteúdo** e, na dúvida, **marca para revisar**. *Detectar ≠ classificar.*
 
 ---
 
@@ -112,7 +185,7 @@ Extraia os dados deste documento fiscal. Responda APENAS com JSON:
 fornecedor, numero, moeda, valor (só o número), data (AAAA.MM.DD).
 ```
 
-**Por quê:** acabou o `documento (3).pdf`. Tudo fica buscável e com data/valor confiáveis para a conciliação.
+**Por quê:** acabou o `documento (3).pdf`. Tudo fica pesquisável e com data/valor confiáveis para a conciliação.
 
 ---
 
@@ -121,20 +194,18 @@ fornecedor, numero, moeda, valor (só o número), data (AAAA.MM.DD).
 **O que pedi (direcional):**
 > "Salve cada nota no Drive, na **pasta do mês da nota** (derive a pasta da data, sem lista manual). Não duplique se eu rodar de novo. Marque o email com a label **anexo salvo** ou **anexo não salvo** — e **mantenha o email não lido**. Por fim, monte a tabela de invoices com fornecedor, data, moeda, valor, anotação da IA e o **link** do arquivo."
 
-**O que a IA construiu:** arquivamento idempotente (dedup por nome+tamanho) na pasta do mês, aplicação de labels mantendo o email não lido, e gravação de `Trusted.invoices` com o link do Drive.
+**O que a IA construiu:** arquivamento idempotente (dedup por nome+tamanho+número da nota) na pasta do mês, aplicação de labels mantendo o email não lido, e gravação de `Trusted.invoices` com o link do Drive.
 
 **Por quê:** a label é uma **trilha de auditoria visível** no próprio Gmail. O "não lido" garante que a automação não bagunça a caixa de ninguém. A tabela é a base governada da conciliação.
 
 ---
 
-### Etapa viii — Extrato do cartão *(preparatório)*
+### Etapa viii — Extrato do cartão
 
 **O que pedi (direcional):**
-> "Leia os **PDFs de fatura** dos cartões com IA de visão, extraia cada lançamento, **mascare dados sensíveis** (ex.: nome do portador), e **valide** a soma contra o total de cada fatura. Só grave a tabela se cada fatura bater."
+> "Leia os **PDFs de fatura** dos cartões com IA de visão, extraia cada lançamento, **mascare dados sensíveis**, e **valide** a soma contra o total de cada fatura. Só grave a tabela se cada fatura bater."
 
-**O que a IA construiu:** extração por visão dos extratos, mascaramento de portadores, validação banco-a-banco contra o total, e gravação de `Trusted.transacoes_cartao` — **com trava: só grava se conferir**.
-
-**Por quê é preparatório:** essa etapa é feita *antes* e validada por uma pessoa. É conferência, não chute — e mostra que dado sensível (extrato) entra na Nekt já tratado e governado.
+**O que a IA construiu:** extração por visão dos extratos, mascaramento do que pedi, validação banco-a-banco contra o total, e gravação de `Trusted.transacoes_cartao` — **com trava: só grava se conferir**.
 
 ---
 
@@ -145,7 +216,7 @@ fornecedor, numero, moeda, valor (só o número), data (AAAA.MM.DD).
 
 **O que a IA construiu:** conciliação 1:1 por valor/moeda/data para fornecedores normais + um bloco agregado mensal para gastos recorrentes. Grava `Trusted.conciliacao` (agregados marcados como `status='agregado'`) e `Trusted.conciliacao_agregada` (cobrado × notas × diferença).
 
-**Por quê:** é o momento de maior impacto. A coluna **não-conciliado** é um **controle de auditoria visível** — mostrada com orgulho, não escondida.
+**Por quê:** é o nosso objetivo final. A coluna **não-conciliado** é um **controle de auditoria visível**.
 
 ---
 
@@ -222,4 +293,4 @@ O código de cada notebook está na pasta [`notebooks/`](notebooks/) — um `.py
 - 📦 **O código deste projeto está aqui, aberto.** Use, adapte, melhore.
 - 📅 **Quer ver isso rodando no _seu_ cenário?** Marque uma call com o **Antonio** — a gente mostra a Nekt no seu contexto, com seus dados.
 
-> *Construído com Claude (cérebro) + Nekt (memória).*
+> *Construído com Claude Code + Nekt.*
