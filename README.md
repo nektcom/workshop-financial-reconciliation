@@ -1,4 +1,4 @@
-# Nekt + Claude Code: conciliação financeira no automático
+# AI Native no Financeiro da Nekt: como colocamos a conciliação financeira no automático com agentes de IA
 
 ### Como construir uma conciliação de notas fiscais × cartão de crédito conversando com uma IA, em cima da Nekt — e por que finanças pode confiar nisso
 
